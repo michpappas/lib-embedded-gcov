@@ -1,0 +1,78 @@
+#  SPDX-License-Identifier: BSD-3-Clause
+#
+#  embedded-gcov Makefile.uk
+#
+#  Authors: Michalis Pappas <michalis@unikraft.org>
+#
+#  Copyright (c) 2023, Unikraft GmbH
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions
+#  are met:
+#
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#  3. Neither the name of the copyright holder nor the names of its
+#     contributors may be used to endorse or promote products derived from
+#     this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+#  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+#
+################################################################################
+# App registration
+################################################################################
+$(eval $(call addlib,libembeddedgcov,$(CONFIG_LIBEMBEDDEDGCOV)))
+
+################################################################################
+# Sources
+################################################################################
+LIBEMBEDDEDGCOV_BRANCH = main
+LIBEMBEDDEDGCOV_URL = https://github.com/nasa-jpl/embedded-gcov.git
+LIBEMBEDDEDGCOV_PATCHDIR = $(LIBEMBEDDEDGCOV_BASE)/patches
+$(eval $(call clone,libembeddedgcov,$(LIBEMBEDDEDGCOV_URL),$(LIBEMBEDDEDGCOV_BRANCH)))
+$(eval $(call patch,libembeddedgcov,$(LIBEMBEDDEDGCOV_PATCHDIR),$(LIBEMBEDDEDGCOV_BASENAME)))
+
+################################################################################
+# Library sources
+################################################################################
+LIBEMBEDDEDGCOV_SRCS-y += $(LIBEMBEDDEDGCOV_ORIGIN)/code/gcov_public.c
+LIBEMBEDDEDGCOV_SRCS-y += $(LIBEMBEDDEDGCOV_ORIGIN)/code/gcov_gcc.c
+LIBEMBEDDEDGCOV_SRCS-y += $(LIBEMBEDDEDGCOV_ORIGIN)/code/gcov_printf.c
+
+################################################################################
+# Library includes
+################################################################################
+CINCLUDES-$(CONFIG_LIBEMBEDDEDGCOV) += -I$(LIBEMBEDDEDGCOV_ORIGIN)/code
+CXXINCLUDES-$(CONFIG_LIBEMBEDDEDGCOV) += -I$(LIBEMBEDDEDGCOV_ORIGIN)/code
+
+################################################################################
+# Library flags
+################################################################################
+
+CFLAGS-$(CONFIG_LIBEMBEDDEDGCOV) += -ftest-coverage -fprofile-arcs
+
+ifneq ($(CONFIG_LIBEMBEDDEDGCOV_OUTPUT_BINARY_FILE),)
+$(error Binary file output not implemented)
+endif
+ifneq ($(CONFIG_LIBEMBEDDEDGCOV_OUTPUT_BINARY_MEMORY),)
+$(error Memory output not implemented)
+endif
+
+LIBEMBEDDEDGCOV_CFLAGS-$(CONFIG_LIBEMBEDDEDGCOV_OUTPUT_SERIAL_HEXDUMP)     += -DGCOV_OPT_OUTPUT_SERIAL_HEXDUMP
+LIBEMBEDDEDGCOV_CFLAGS-$(CONFIG_LIBEMBEDDEDGCOV_OUTPUT_SERIAL_HEXDUMP)     += -Dgcov_printf=printf
+LIBEMBEDDEDGCOV_CFLAGS-$(CONFIG_LIBEMBEDDEDGCOV_PRINT_STATUS)              += -DGCOV_OPT_PRINT_STATUS
+LIBEMBEDDEDGCOV_CFLAGS-$(CONFIG_LIBEMBEDDEDGCOV_PROVIDE_CALL_CONSTRUCTORS) += -DGCOV_OPT_PROVIDE_CALL_CONSTRUCTORS
+LIBEMBEDDEDGCOV_CFLAGS-$(CONFIG_LIBEMBEDDEDGCOV_USE_MALLOC)                += -DGCOV_OPT_USE_MALLOC

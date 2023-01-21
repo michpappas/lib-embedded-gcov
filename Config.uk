@@ -1,0 +1,38 @@
+menuconfig LIBEMBEDDEDGCOV
+	bool "embedded-gcov"
+	default n
+
+if LIBEMBEDDEDGCOV
+config LIBEMBEDDEDGCOV_PROVIDE_CALL_CONSTRUCTORS
+	bool "Provide call constructors"
+	help
+	  In most systems __gcov_init() is called on startup. If you are
+	  running on a non-standard startup environment you can enable this
+	  option, and gcov-embedded will provide __gcov_call_constructors()
+	  that you can run manually. You will also need to define __ctor_list
+	  and __ctor_end.
+	default n
+
+config LIBEMBEDDEDGCOV_PRINT_STATUS
+	bool "Print status to console"
+	help
+	  Print status and error messages to the serial console. If the
+	  coverage data output is set to console, status is always printed
+	  to the console.
+	default n
+
+config LIBEMBEDDEDGCOV_USE_MALLOC
+	bool "Use malloc"
+	depends on LIBUKALLOC
+	help
+	  Use malloc to get space for coverage data"
+	default y
+
+choice LIBEMBEDDEDGCOV_OUTPUT
+	prompt "Coverage data output"
+	default LIBEMBEDDEDGCOV_OUTPUT_SERIAL_HEXDUMP
+config LIBEMBEDDEDGCOV_OUTPUT_SERIAL_HEXDUMP
+	bool "Console"
+endchoice
+
+endif
